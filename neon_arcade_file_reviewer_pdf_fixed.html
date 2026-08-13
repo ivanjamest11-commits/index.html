@@ -1,0 +1,326 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Neon Arcade</title>
+<style>
+*{box-sizing:border-box}body{margin:0;min-height:100vh;background:#050816;color:#fff;font-family:Arial,sans-serif}
+header{text-align:center;padding:30px 15px 20px}.logo{font:800 clamp(30px,7vw,58px) Arial;color:#fff;text-shadow:0 0 10px #22d3ee,0 0 25px #8b5cf6}.subtitle{color:#cbd5e1}
+.container{max-width:1050px;margin:auto;padding:0 15px 40px}.menu{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:12px;margin:15px 0 25px}
+.cardbtn{border:1px solid #334155;border-radius:16px;padding:18px 10px;background:#111827;color:white;cursor:pointer;transition:.2s;text-align:center}.cardbtn:hover{transform:translateY(-5px);border-color:#22d3ee;box-shadow:0 0 20px #22d3ee55}.icon{font-size:34px;display:block}.cardbtn b{font-size:13px}.cardbtn small{display:block;color:#94a3b8;margin-top:5px}
+.game{display:none;background:#0b1225;border:1px solid #334155;border-radius:20px;padding:22px;box-shadow:0 15px 45px #0009}.game.active{display:block}h2{text-align:center;color:#67e8f9}
+.stats{display:flex;justify-content:space-around;gap:8px;flex-wrap:wrap;background:#111c35;padding:11px;border-radius:12px;font-weight:bold}.action{border:0;border-radius:9px;padding:12px 18px;background:linear-gradient(90deg,#06b6d4,#6366f1);color:white;font-weight:bold;cursor:pointer;margin:5px}.result{text-align:center;color:#67e8f9;font-weight:bold;min-height:25px;margin:12px}
+.board{display:grid;grid-template-columns:repeat(8,1fr);max-width:480px;margin:20px auto;border:4px solid #475569}.square{aspect-ratio:1;display:flex;align-items:center;justify-content:center;font-size:clamp(25px,8vw,52px);cursor:pointer}.light{background:#e8d5b5}.dark{background:#769656}.selected{outline:4px solid #22d3ee;outline-offset:-4px}
+.xo{display:grid;grid-template-columns:repeat(3,1fr);max-width:390px;margin:20px auto;gap:7px}.xo button{aspect-ratio:1;font-size:55px;border:0;border-radius:12px;background:#17213a;color:white}
+.connect{display:grid;grid-template-columns:repeat(7,1fr);gap:5px;max-width:500px;margin:20px auto;background:#1e3a8a;padding:9px;border-radius:15px}.connect button{aspect-ratio:1;border-radius:50%;border:0;background:#dbeafe;cursor:pointer}.connect button.red{background:#ef4444}.connect button.yellow{background:#facc15}
+#reactionBox{height:180px;border-radius:18px;background:#334155;display:flex;align-items:center;justify-content:center;font-size:23px;font-weight:bold;cursor:pointer}#reactionBox.go{background:#16a34a;box-shadow:0 0 35px #22c55e}#reactionBox.ready{background:#dc2626}
+.choice{display:block;width:100%;margin:8px 0;padding:13px;border:1px solid #334155;background:#16213b;color:#e2e8f0;border-radius:10px;cursor:pointer;text-align:left}
+footer{text-align:center;color:#64748b;padding:25px}@media(max-width:500px){.game{padding:15px}.square{font-size:27px}.xo button{font-size:43px}}
+</style>
+</head>
+<body>
+<header><div class="logo">NEON ARCADE</div><p class="subtitle">Solo games + multiplayer games on one phone</p></header>
+<div class="container">
+<div class="menu">
+<button class="cardbtn" onclick="show('chess')"><span class="icon">♟️</span><b>CHESS</b><small>2 Players</small></button>
+<button class="cardbtn" onclick="show('ttt')"><span class="icon">❌⭕</span><b>TIC-TAC-TOE</b><small>2 Players</small></button>
+<button class="cardbtn" onclick="show('connect')"><span class="icon">🔴🟡</span><b>CONNECT 4</b><small>2 Players</small></button>
+<button class="cardbtn" onclick="show('reaction')"><span class="icon">⚡</span><b>REACTION DUEL</b><small>2 Players</small></button>
+<button class="cardbtn" onclick="show('quiz')"><span class="icon">🧠</span><b>MIL QUIZ</b><small>Solo</small></button>
+<button class="cardbtn" onclick="show('study')"><span class="icon">📚</span><b>STUDY MAKER</b><small>File → Reviewer</small></button>
+</div>
+
+<section id="chess" class="game active"><h2>♟️ CHESS — 2 PLAYERS</h2><div class="stats"><span>Turn: <span id="chessTurn">White</span></span><span>Tap piece → destination</span></div><div id="chessBoard" class="board"></div><div id="chessMsg" class="result">White to move.</div><button class="action" onclick="newChess()">NEW CHESS GAME</button><p style="text-align:center;color:#94a3b8">Basic legal piece movement and captures. Advanced check/checkmate and castling are not included.</p></section>
+
+<section id="ttt" class="game"><h2>❌⭕ TIC-TAC-TOE</h2><div class="stats"><span id="tttTurn">Player X's turn</span><span>2 Players</span></div><div id="xo" class="xo"></div><div id="tttResult" class="result"></div><div style="text-align:center"><button class="action" onclick="newTTT()">NEW MATCH</button></div></section>
+
+<section id="connect" class="game"><h2>🔴🟡 CONNECT 4</h2><div class="stats"><span>Turn: <span id="cTurn">Red</span></span><span>Get 4 in a row</span></div><div id="connectBoard" class="connect"></div><div id="cResult" class="result"></div><div style="text-align:center"><button class="action" onclick="newConnect()">NEW MATCH</button></div></section>
+
+<section id="reaction" class="game"><h2>⚡ REACTION DUEL</h2><div class="stats"><span>Player 1 = LEFT</span><span>Player 2 = RIGHT</span></div><div id="reactionBox" onclick="reactionTap(event)">PRESS START</div><div id="rResult" class="result">Wait for green, then race to tap your side!</div><div style="text-align:center"><button class="action" onclick="startReaction()">START DUEL</button></div></section>
+
+
+<section id="study" class="game">
+<h2>📚 REVIEWER & FLASHCARD MAKER</h2>
+<div class="stats">
+  <span>📁 Upload your study file</span>
+  <span>PDF • DOCX • PPTX • TXT • CSV • MD • HTML • RTF • JSON</span>
+</div>
+
+<div style="background:#101a31;border-radius:15px;padding:20px;text-align:center">
+  <div style="border:2px dashed #475569;border-radius:16px;padding:28px 15px;background:#07101f">
+    <div style="font-size:48px">📄</div>
+    <h3 style="color:#67e8f9">Choose a file</h3>
+    <p style="color:#94a3b8">Your file will be used to create a reviewer or flashcards.</p>
+    <input id="studyFile" type="file"
+      accept=".pdf,.docx,.pptx,.txt,.md,.csv,.html,.htm,.rtf,.json"
+      style="width:100%;max-width:600px;padding:12px;background:#111827;color:#cbd5e1;border:1px solid #334155;border-radius:10px">
+    <div id="selectedFile" style="color:#a5b4fc;margin-top:10px;font-weight:bold"></div>
+    <p style="color:#94a3b8;font-size:13px;margin-top:12px">
+      Tip: PDF files must contain selectable text. If a PDF is only scanned pictures, this version cannot extract the words.
+    </p>
+  </div>
+
+  <div style="margin-top:18px">
+    <label style="color:#67e8f9;font-weight:bold">Number of flashcards</label>
+    <div style="margin:12px auto;max-width:300px">
+      <input id="cardAmount" type="number" min="1" max="30" value="10"
+        style="width:100%;padding:13px;text-align:center;border-radius:10px;border:1px solid #334155;background:#07101f;color:white;font-size:18px">
+      <small style="display:block;color:#94a3b8;margin-top:5px">Choose from 1 to 30</small>
+    </div>
+  </div>
+
+  <div style="margin-top:12px">
+    <button class="action" onclick="loadStudyFile()">📥 LOAD FILE</button>
+    <button class="action" onclick="generateStudy()">✨ GENERATE</button>
+    <button class="action" onclick="clearStudy()">CLEAR</button>
+  </div>
+  <div id="studyStatus" class="result"></div>
+</div>
+
+<div id="studyOutput" style="display:none;margin-top:18px">
+  <div style="background:#111c35;border-radius:15px;padding:18px">
+    <h3 style="color:#a5b4fc">📖 Reviewer</h3>
+    <div id="reviewerText" style="white-space:pre-wrap;line-height:1.65;color:#e2e8f0"></div>
+  </div>
+
+  <h3 style="color:#67e8f9;margin-top:22px;text-align:center">🃏 Flashcards</h3>
+  <div id="flashcard" style="max-width:560px;margin:auto;min-height:210px;background:linear-gradient(145deg,#172554,#312e81);border:1px solid #6366f1;border-radius:20px;padding:28px;text-align:center;display:flex;flex-direction:column;justify-content:center">
+    <div style="color:#a5b4fc;font-size:12px;letter-spacing:2px">QUESTION</div>
+    <div id="flashQuestion" style="font-size:22px;font-weight:bold;margin:18px 0"></div>
+    <div id="flashAnswer" style="display:none;color:#67e8f9;font-size:18px"></div>
+  </div>
+  <div style="text-align:center;margin-top:12px">
+    <button class="action" onclick="flipCard()">SHOW ANSWER</button>
+    <button class="action" onclick="prevCard()">← PREVIOUS</button>
+    <button class="action" onclick="nextCard()">NEXT →</button>
+  </div>
+  <div id="flashCount" class="result"></div>
+</div>
+</section>
+</div>
+<footer>NEON ARCADE • Local multiplayer games work on one phone</footer>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+<script>
+if (window.pdfjsLib) {
+  pdfjsLib.GlobalWorkerOptions.workerSrc =
+    "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js";
+}
+</script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.8.0/mammoth.browser.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+<script>
+function show(id){document.querySelectorAll('.game').forEach(x=>x.classList.remove('active'));document.getElementById(id).classList.add('active')}
+
+/* TIC TAC TOE */
+let xo=[],xTurn=true,xdone=false;
+function newTTT(){xo=Array(9).fill('');xTurn=true;xdone=false;document.getElementById('tttResult').textContent='';drawTTT()}
+function drawTTT(){let g=document.getElementById('xo');g.innerHTML='';xo.forEach((v,i)=>{let b=document.createElement('button');b.textContent=v;b.onclick=()=>playTTT(i);g.appendChild(b)});document.getElementById('tttTurn').textContent=xdone?'Game over':`Player ${xTurn?'X':'O'}'s turn`}
+function playTTT(i){if(xo[i]||xdone)return;xo[i]=xTurn?'X':'O';let win=checkWin(xo);if(win){xdone=true;document.getElementById('tttResult').textContent=`🏆 Player ${xo[i]} wins!`}else if(xo.every(Boolean)){xdone=true;document.getElementById('tttResult').textContent='🤝 Draw!'}else xTurn=!xTurn;drawTTT()}
+function checkWin(a){return [[0,1,2],[3,4,5],[6,7,8],[0,3,6],[1,4,7],[2,5,8],[0,4,8],[2,4,6]].some(l=>a[l[0]]&&a[l[0]]===a[l[1]]&&a[l[1]]===a[l[2]])}newTTT();
+
+/* CONNECT 4 */
+let cb=[],cPlayer=1,cDone=false;
+function newConnect(){cb=Array.from({length:6},()=>Array(7).fill(0));cPlayer=1;cDone=false;document.getElementById('cResult').textContent='';drawConnect()}
+function drawConnect(){let g=document.getElementById('connectBoard');g.innerHTML='';for(let r=0;r<6;r++)for(let c=0;c<7;c++){let b=document.createElement('button');if(cb[r][c]===1)b.className='red';if(cb[r][c]===2)b.className='yellow';b.onclick=()=>drop(c);g.appendChild(b)}document.getElementById('cTurn').textContent=cPlayer===1?'Red':'Yellow'}
+function drop(c){if(cDone)return;let r=-1;for(let i=5;i>=0;i--)if(!cb[i][c]){r=i;break}if(r<0)return;cb[r][c]=cPlayer;if(connectWin(r,c)){cDone=true;document.getElementById('cResult').textContent=`🏆 ${cPlayer===1?'Red':'Yellow'} wins!`}else if(cb[0].every(Boolean)){cDone=true;document.getElementById('cResult').textContent='🤝 Draw!'}else cPlayer=cPlayer===1?2:1;drawConnect()}
+function connectWin(r,c){let p=cb[r][c],ds=[[1,0],[0,1],[1,1],[1,-1]];return ds.some(([dr,dc])=>1+count(r,c,dr,dc,p)+count(r,c,-dr,-dc,p)>=4)}
+function count(r,c,dr,dc,p){let n=0;r+=dr;c+=dc;while(r>=0&&r<6&&c>=0&&c<7&&cb[r][c]===p){n++;r+=dr;c+=dc}return n}newConnect();
+
+/* REACTION DUEL */
+let rt=null,rs='idle',rtStart=0;
+function startReaction(){clearTimeout(rt);rs='wait';let b=document.getElementById('reactionBox');b.className='';b.textContent='WAIT...';document.getElementById('rResult').textContent='Get ready...';rt=setTimeout(()=>{rs='go';rtStart=performance.now();b.className='go';b.textContent='GO! TAP YOUR SIDE!'},1500+Math.random()*3500)}
+function reactionTap(e){if(rs==='wait'){clearTimeout(rt);rs='idle';document.getElementById('reactionBox').className='ready';document.getElementById('reactionBox').textContent='TOO EARLY!';document.getElementById('rResult').textContent='❌ Wait for GO.';return}if(rs!=='go')return;let ms=Math.round(performance.now()-rtStart),side=e.clientX<window.innerWidth/2?'Player 1 (LEFT)':'Player 2 (RIGHT)';rs='idle';document.getElementById('reactionBox').className='';document.getElementById('reactionBox').textContent='PRESS START';document.getElementById('rResult').textContent=`🏆 ${side} wins with ${ms} ms!`}
+
+/* CHESS */
+const pieces={wK:'♔',wQ:'♕',wR:'♖',wB:'♗',wN:'♘',wP:'♙',bK:'♚',bQ:'♛',bR:'♜',bB:'♝',bN:'♞',bP:'♟'};
+let board=[],turn='w',selected=null;
+function newChess(){board=[['bR','bN','bB','bQ','bK','bB','bN','bR'],['bP','bP','bP','bP','bP','bP','bP','bP'],['','','','','','','',''],['','','','','','','',''],['','','','','','','',''],['','','','','','','',''],['wP','wP','wP','wP','wP','wP','wP','wP'],['wR','wN','wB','wQ','wK','wB','wN','wR']];turn='w';selected=null;document.getElementById('chessMsg').textContent='White to move.';drawChess()}
+function drawChess(){let g=document.getElementById('chessBoard');g.innerHTML='';for(let r=0;r<8;r++)for(let c=0;c<8;c++){let b=document.createElement('div');b.className='square '+((r+c)%2?'dark':'light');if(selected&&selected.r===r&&selected.c===c)b.classList.add('selected');b.textContent=pieces[board[r][c]]||'';b.onclick=()=>chessTap(r,c);g.appendChild(b)}document.getElementById('chessTurn').textContent=turn==='w'?'White':'Black'}
+function colorOf(p){return p?p[0]:''}
+function pathClear(r,c,nr,nc){let dr=Math.sign(nr-r),dc=Math.sign(nc-c),x=r+dr,y=c+dc;while(x!==nr||y!==nc){if(board[x][y])return false;x+=dr;y+=dc}return true}
+function legalMove(r,c,nr,nc){let p=board[r][c],type=p[1],dr=nr-r,dc=nc-c,target=board[nr][nc],ad=Math.abs(dr),ac=Math.abs(dc);if(!p||colorOf(p)!==turn||colorOf(target)===turn)return false;if(type==='P'){let dir=turn==='w'?-1:1;if(dc===0&&!target&&dr===dir)return true;if(dc===0&&!target&&dr===2*dir&&((turn==='w'&&r===6)||(turn==='b'&&r===1))&&!board[r+dir][c])return true;return ac===1&&dr===dir&&!!target}if(type==='R')return(dr===0||dc===0)&&pathClear(r,c,nr,nc);if(type==='B')return ad===ac&&pathClear(r,c,nr,nc);if(type==='Q')return(dr===0||dc===0||ad===ac)&&pathClear(r,c,nr,nc);if(type==='N')return(ad===2&&ac===1)||(ad===1&&ac===2);if(type==='K')return ad<=1&&ac<=1;return false}
+function chessTap(r,c){if(!selected){if(colorOf(board[r][c])===turn){selected={r,c};document.getElementById('chessMsg').textContent='Choose destination.';drawChess()}return}if(legalMove(selected.r,selected.c,r,c)){board[r][c]=board[selected.r][selected.c];board[selected.r][selected.c]='';selected=null;turn=turn==='w'?'b':'w';document.getElementById('chessMsg').textContent=`${turn==='w'?'White':'Black'} to move.`;drawChess()}else if(colorOf(board[r][c])===turn){selected={r,c};drawChess()}else document.getElementById('chessMsg').textContent='That move is not allowed.'}newChess();
+
+/* MIL QUIZ */
+const qd=[["What should you do before sharing questionable information?",["Share immediately","Verify the source","Ignore the source","Share it everywhere"],1],["Which is an example of digital media?",["Website","Stone tablet","Cave painting","Ancient scroll"],0],["What does MIL encourage?",["Blind trust","Critical thinking","Rumor spreading","Ignoring evidence"],1],["What is misinformation?",["False information that may be shared without intent to deceive","A password","A computer","A search engine"],0],["Which is a good way to check information?",["Compare reliable sources","Believe every headline","Share first","Ignore the date"],0]];
+let qi=0,score=0,locked=false;
+function loadQuiz(){locked=false;document.getElementById('qNum').textContent=qi+1;document.getElementById('qScore').textContent=score;document.getElementById('qText').textContent=qd[qi][0];document.getElementById('qResult').textContent='';document.getElementById('qNext').style.display='none';let box=document.getElementById('qChoices');box.innerHTML='';qd[qi][1].forEach((x,i)=>{let b=document.createElement('button');b.className='choice';b.textContent=x;b.onclick=()=>quizAnswer(i);box.appendChild(b)})}
+function quizAnswer(i){if(locked)return;locked=true;document.getElementById('qResult').textContent=i===qd[qi][2]?'✅ Correct!':'❌ Wrong!';if(i===qd[qi][2])score++;document.getElementById('qScore').textContent=score;document.getElementById('qNext').style.display='inline-block'}
+function nextQuiz(){qi++;if(qi>=qd.length){document.getElementById('qText').textContent='🏆 Complete!';document.getElementById('qChoices').innerHTML='';document.getElementById('qResult').textContent=`Final score: ${score}/5`;document.getElementById('qNext').style.display='none';setTimeout(()=>{qi=0;score=0;loadQuiz()},2200)}else loadQuiz()}loadQuiz();
+
+/* STUDY MAKER: creates a local reviewer and flashcards from notes */
+let studyCards = [], studyIndex = 0, studyAnswerShown = false;
+
+function cleanStudyText(text){
+  return text
+    .replace(/<script[\s\S]*?<\/script>/gi,' ')
+    .replace(/<style[\s\S]*?<\/style>/gi,' ')
+    .replace(/<[^>]+>/g,' ')
+    .replace(/\r/g,' ')
+    .replace(/[ \t]+/g,' ')
+    .replace(/\n\s*\n+/g,'\n')
+    .trim();
+}
+
+async function loadStudyFile(){
+  const file = document.getElementById('studyFile').files[0];
+  const status = document.getElementById('studyStatus');
+  if(!file){status.textContent='Choose a file first.';return}
+  status.textContent=`⏳ Reading ${file.name}...`;
+  try{
+    const ext=(file.name.split('.').pop()||'').toLowerCase();
+    let text='';
+    if(['txt','md','csv','html','htm','rtf','json'].includes(ext)){
+      text=await file.text();
+      text=cleanStudyText(text);
+    }else if(ext==='docx'){
+      if(!window.mammoth) throw new Error('DOCX reader library did not load.');
+      const result=await mammoth.extractRawText({arrayBuffer:await file.arrayBuffer()});
+      text=cleanStudyText(result.value);
+    }else if(ext==='pdf'){
+      text=await extractPDFText(file);
+    }else if(ext==='pptx'){
+      text=await extractPPTXText(file);
+    }else{
+      throw new Error('This file type is not supported.');
+    }
+    if(!text.trim()) throw new Error('No readable text was found in this file.');
+    document.getElementById('studyNotes').value=text;
+    status.textContent=`✅ ${file.name} loaded. You can edit the extracted text, then generate the reviewer.`;
+  }catch(err){
+    console.error(err);
+    status.textContent=`❌ Could not read ${file.name}: ${err.message}`;
+  }
+}
+
+async function extractPDFText(file){
+  // PDF.js is loaded as an ES module above. Import it dynamically so the page remains usable
+  // even if the CDN is unavailable.
+  const pdfjs=await import('https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.4.168/pdf.min.mjs');
+  const data=new Uint8Array(await file.arrayBuffer());
+  const pdf=await pdfjs.getDocument({data}).promise;
+  let out=[];
+  for(let p=1;p<=pdf.numPages;p++){
+    const page=await pdf.getPage(p);
+    const content=await page.getTextContent();
+    out.push(content.items.map(x=>x.str||'').join(' '));
+  }
+  return cleanStudyText(out.join('\n\n'));
+}
+
+async function extractPPTXText(file){
+  if(!window.JSZip) throw new Error('PPTX reader library did not load.');
+  const zip=await JSZip.loadAsync(await file.arrayBuffer());
+  const names=Object.keys(zip.files)
+    .filter(n=>/^ppt\/slides\/slide\d+\.xml$/i.test(n))
+    .sort((a,b)=>{
+      const na=+(a.match(/slide(\d+)/i)||[,0])[1], nb=+(b.match(/slide(\d+)/i)||[,0])[1];
+      return na-nb;
+    });
+  let slides=[];
+  for(const name of names){
+    const xml=await zip.files[name].async('text');
+    const doc=new DOMParser().parseFromString(xml,'application/xml');
+    const texts=[...doc.getElementsByTagNameNS('*','t')].map(n=>n.textContent).filter(Boolean);
+    slides.push(texts.join(' '));
+  }
+  return cleanStudyText(slides.join('\n\n'));
+}
+
+function splitStudyLines(text){
+  return text.split(/\n+/)
+    .map(x=>x.replace(/^[\s•\-*#\d.)]+/,'').trim())
+    .filter(x=>x.length >= 12);
+}
+
+function makeDefinitionCard(line){
+  let m = line.match(/^(.{2,70}?)\s*(?:is|are|means|refers to|:|-)\s+(.{8,300})$/i);
+  if(m){
+    return {q:`What is ${m[1].trim()}?`,a:m[2].trim()};
+  }
+  return null;
+}
+
+function makeCards(text){
+  const lines = splitStudyLines(text);
+  let cards = [];
+
+  lines.forEach(line=>{
+    const d = makeDefinitionCard(line);
+    if(d) cards.push(d);
+  });
+
+  // Add useful recall cards from remaining lines.
+  lines.forEach((line,i)=>{
+    if(cards.length >= 12) return;
+    if(cards.some(c=>c.a===line)) return;
+    const words = line.split(/\s+/);
+    const short = words.slice(0,12).join(' ');
+    cards.push({
+      q:`What is an important point about "${short}${words.length>12?'…':''}"?`,
+      a:line
+    });
+  });
+
+  // If notes contain sentences separated by periods but few lines, use sentences.
+  if(cards.length < 3){
+    const sentences = text.split(/(?<=[.!?])\s+/).filter(x=>x.length>=20);
+    sentences.forEach(s=>{
+      if(cards.length>=12) return;
+      cards.push({q:'What should you remember from this statement?',a:s.trim()});
+    });
+  }
+  return cards.slice(0,12);
+}
+
+function generateStudy(){
+  const text = cleanStudyText(document.getElementById('studyNotes').value);
+  const status = document.getElementById('studyStatus');
+  if(text.length < 40){
+    status.textContent='⚠️ Add more notes first (at least a few sentences).';
+    return;
+  }
+  studyCards = makeCards(text);
+  if(!studyCards.length){
+    status.textContent='⚠️ I could not find enough text to create cards.';
+    return;
+  }
+  studyIndex=0;studyAnswerShown=false;
+  document.getElementById('studyOutput').style.display='block';
+  document.getElementById('reviewerText').textContent =
+`STUDY REVIEWER
+
+Main ideas:
+${studyCards.map((c,i)=>`${i+1}. ${c.q.replace(/^What is |^What should you remember from this statement\?$/,'')}\n   ${c.a}`).join('\n\n')}
+
+Study tip:
+Read the reviewer once, then use the flashcards without looking at the answers.`;
+  renderFlashcard();
+  status.textContent=`✅ Generated ${studyCards.length} flashcards from your notes.`;
+  document.getElementById('studyOutput').scrollIntoView({behavior:'smooth',block:'start'});
+}
+
+function renderFlashcard(){
+  if(!studyCards.length)return;
+  const c=studyCards[studyIndex];
+  document.getElementById('flashQuestion').textContent=c.q;
+  document.getElementById('flashAnswer').textContent=c.a;
+  document.getElementById('flashAnswer').style.display=studyAnswerShown?'block':'none';
+  document.getElementById('flashCount').textContent=`Card ${studyIndex+1} of ${studyCards.length}`;
+}
+function flipCard(){if(!studyCards.length)return;studyAnswerShown=!studyAnswerShown;renderFlashcard()}
+function nextCard(){if(!studyCards.length)return;studyIndex=(studyIndex+1)%studyCards.length;studyAnswerShown=false;renderFlashcard()}
+function prevCard(){if(!studyCards.length)return;studyIndex=(studyIndex-1+studyCards.length)%studyCards.length;studyAnswerShown=false;renderFlashcard()}
+function clearStudy(){
+ document.getElementById('studyNotes').value='';
+ document.getElementById('studyFile').value='';
+ document.getElementById('studyOutput').style.display='none';
+ document.getElementById('studyStatus').textContent='';
+ studyCards=[];studyIndex=0;
+}
+
+</script>
+</body>
+</html>
