@@ -1,0 +1,35 @@
+<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>PLAYVERSE</title>
+<style>
+body{margin:0;font-family:Arial;color:#fff;background:linear-gradient(135deg,#050816,#17113b);min-height:100vh;text-align:center}header{padding:45px 10px}h1{font-size:clamp(50px,13vw,90px);margin:0;color:#67e8f9;text-shadow:0 0 25px #22d3ee}main{max-width:1000px;margin:auto;padding:15px}.menu{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:15px}.card,.game{background:#111936;border:1px solid #334155;border-radius:20px}.card{padding:25px;color:white;cursor:pointer}.card:hover{box-shadow:0 0 25px #22d3ee55;transform:translateY(-5px)}.icon{font-size:40px;display:block}.game{display:none;margin-top:20px;padding:20px}.active{display:block}.btn,.choice{padding:12px;margin:6px;border:0;border-radius:10px;background:#2563eb;color:#fff;font-weight:bold;cursor:pointer}.xo{display:grid;grid-template-columns:repeat(3,1fr);max-width:400px;margin:auto;gap:7px}.xo button{aspect-ratio:1;font-size:55px;background:#1e293b;color:white;border:0;border-radius:12px}.connect{display:grid;grid-template-columns:repeat(7,1fr);max-width:500px;margin:auto;gap:5px;background:#1d4ed8;padding:10px}.connect button{aspect-ratio:1;border:0;border-radius:50%;background:#dbeafe}.red{background:#ef4444!important}.yellow{background:#facc15!important}.board{display:grid;grid-template-columns:repeat(8,1fr);max-width:500px;margin:auto}.sq{aspect-ratio:1;display:flex;align-items:center;justify-content:center;font-size:clamp(25px,7vw,50px)}.a{background:#e8d5b5}.b{background:#668b55}.reaction{height:180px;border-radius:20px;background:#172033;display:flex;align-items:center;justify-content:center;font-size:22px;font-weight:bold}.go{background:#16a34a!important;box-shadow:0 0 45px #22c55e}.choice{display:block;width:100%;text-align:left;background:#17213b;border:1px solid #334155}
+</style></head><body>
+<header><h1>PLAYVERSE</h1><p>✨ Fun Games • Friendly Challenges • Big Adventures ✨</p></header><main>
+<div class="menu">
+<button class="card" onclick="openGame('chess')"><span class="icon">♟️</span>CHESS<br><small>2 Players</small></button>
+<button class="card" onclick="openGame('ttt')"><span class="icon">❌⭕</span>TIC-TAC-TOE<br><small>2 Players</small></button>
+<button class="card" onclick="openGame('connect')"><span class="icon">🔴🟡</span>CONNECT 4<br><small>2 Players</small></button>
+<button class="card" onclick="openGame('reaction')"><span class="icon">⚡</span>REACTION DUEL<br><small>2 Players</small></button>
+<button class="card" onclick="openGame('quiz')"><span class="icon">🧠</span>MIL QUIZ<br><small>Solo</small></button>
+</div>
+<section id="chess" class="game active"><h2>♟️ CHESS</h2><div id="board" class="board"></div><p>Two-player chess board.</p><button class="btn" onclick="makeChess()">NEW GAME</button></section>
+<section id="ttt" class="game"><h2>❌⭕ TIC-TAC-TOE</h2><div id="xo" class="xo"></div><p id="tm"></p><button class="btn" onclick="newTtt()">NEW GAME</button></section>
+<section id="connect" class="game"><h2>🔴🟡 CONNECT 4</h2><div id="co" class="connect"></div><p id="cm"></p><button class="btn" onclick="newCo()">NEW GAME</button></section>
+<section id="reaction" class="game"><h2>⚡ REACTION DUEL</h2><div id="rb" class="reaction" onclick="tapReaction()">PRESS START</div><p id="rm"></p><button class="btn" onclick="startReaction()">START DUEL</button></section>
+<section id="quiz" class="game"><h2>🧠 MIL QUIZ</h2><h3 id="qt"></h3><div id="qc"></div><p id="qm"></p><button id="qn" class="btn" onclick="nextQ()" style="display:none">NEXT</button></section>
+</main>
+<script>
+function openGame(id){document.querySelectorAll('.game').forEach(x=>x.classList.remove('active'));document.getElementById(id).classList.add('active')}
+let t=[],turn=0,done=false;
+function newTtt(){t=Array(9).fill('');turn=0;done=false;drawT();tm.textContent=''}
+function drawT(){xo.innerHTML='';t.forEach((v,i)=>{let b=document.createElement('button');b.textContent=v;b.onclick=()=>tapT(i);xo.appendChild(b)})}
+function tapT(i){if(done||t[i])return;t[i]=turn?'O':'X';let lines=[[0,1,2],[3,4,5],[6,7,8],[0,3,6],[1,4,7],[2,5,8],[0,4,8],[2,4,6]];if(lines.some(a=>t[a[0]]&&t[a[0]]==t[a[1]]&&t[a[1]]==t[a[2]])){done=true;tm.textContent=t[i]+' wins!'}else if(t.every(Boolean)){done=true;tm.textContent='Draw!'}else turn=1-turn;drawT()}newTtt();
+let grid=[],player=1;
+function newCo(){grid=Array.from({length:6},()=>Array(7).fill(0));player=1;cm.textContent='';drawCo()}
+function drawCo(){co.innerHTML='';for(let r=0;r<6;r++)for(let c=0;c<7;c++){let b=document.createElement('button');if(grid[r][c])b.className=grid[r][c]==1?'red':'yellow';b.onclick=()=>drop(c);co.appendChild(b)}}
+function drop(c){for(let r=5;r>=0;r--)if(!grid[r][c]){grid[r][c]=player;player=3-player;drawCo();return}}newCo();
+let state=0,timer;function startReaction(){state=1;rb.className='reaction';rb.textContent='WAIT...';rm.textContent='Get ready!';timer=setTimeout(()=>{state=2;rb.className='reaction go';rb.textContent='GO! TAP!'},1000+Math.random()*3000)}
+function tapReaction(){if(state==1){clearTimeout(timer);state=0;rm.textContent='❌ Too early!'}else if(state==2){rm.textContent='🏆 First player to tap wins!';state=0;rb.className='reaction';rb.textContent='PRESS START'}}
+const qs=[['Before sharing questionable information?',['Share immediately','Verify the source','Ignore it'],1],['What does MIL encourage?',['Critical thinking','Blind trust','Rumors'],0],['Which is digital media?',['Website','Stone tablet','Cave painting'],0],['What is misinformation?',['False information','A password','A keyboard'],0],['Best way to check information?',['Compare reliable sources','Share first','Believe headlines'],0]];
+let qi=0,score=0;function loadQ(){qt.textContent=qs[qi][0];qc.innerHTML='';qs[qi][1].forEach((a,i)=>{let b=document.createElement('button');b.className='choice';b.textContent=a;b.onclick=()=>answer(i);qc.appendChild(b)});qn.style.display='none';qm.textContent=''}function answer(i){if(i==qs[qi][2]){score++;qm.textContent='✅ Correct!'}else qm.textContent='❌ Not quite!';qn.style.display='inline-block';document.querySelectorAll('.choice').forEach(b=>b.disabled=true)}function nextQ(){qi++;if(qi>=qs.length){qm.textContent='🏆 Score: '+score+'/'+qs.length;qn.style.display='none';setTimeout(()=>{qi=0;score=0;loadQ()},1500)}else loadQ()}loadQ();
+const pcs=['♜','♞','♝','♛','♚','♝','♞','♜','♟','♟','♟','♟','♟','♟','♟','♟','','','','','','','','','','','','','','','','','','','','','','','','','','','','','','','','','','','','','♙','♙','♙','♙','♙','♙','♙','♙','♖','♘','♗','♕','♔','♗','♘','♖'];
+function makeChess(){board.innerHTML='';pcs.forEach((p,i)=>{let d=document.createElement('div');d.className='sq '+((Math.floor(i/8)+i)%2?'b':'a');d.textContent=p;board.appendChild(d)})}makeChess();
+</script></body></html>
